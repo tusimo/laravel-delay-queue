@@ -7,6 +7,7 @@ use Tusimo\DelayedQueue\Connectors\DatabaseConnector;
 use Tusimo\DelayedQueue\Connectors\RedisConnector;
 use Tusimo\DelayedQueue\Connectors\SqsConnector;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Queue;
 
 class DelayedQueueServiceProvider extends ServiceProvider
 {
@@ -28,7 +29,13 @@ class DelayedQueueServiceProvider extends ServiceProvider
     public function boot()
     {
         register_shutdown_function(function () {
-            $this->app['queue']->fireQueueJobs();
+            register_shutdown_function(function () {
+                $queue = $this->app['queue'];
+                if ($queue instanceof Queue) {
+                    return;
+                }
+                $this->app['queue']->fireQueueJobs();
+            });
         });
     }
 
