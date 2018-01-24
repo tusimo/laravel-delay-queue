@@ -2,12 +2,15 @@
 
 namespace Tusimo\DelayedQueue\Provider;
 
+use Illuminate\Support\Facades\Queue;
+use Psy\Exception\FatalErrorException;
 use Tusimo\DelayedQueue\Connectors\BeanstalkdConnector;
 use Tusimo\DelayedQueue\Connectors\DatabaseConnector;
+use Tusimo\DelayedQueue\Connectors\NullConnector;
 use Tusimo\DelayedQueue\Connectors\RedisConnector;
 use Tusimo\DelayedQueue\Connectors\SqsConnector;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Queue;
+use Tusimo\DelayedQueue\Connectors\SyncConnector;
 
 class DelayedQueueServiceProvider extends ServiceProvider
 {
@@ -29,13 +32,11 @@ class DelayedQueueServiceProvider extends ServiceProvider
     public function boot()
     {
         register_shutdown_function(function () {
-            register_shutdown_function(function () {
-                $queue = $this->app['queue'];
-                if ($queue instanceof Queue) {
-                    return;
-                }
-                $this->app['queue']->fireQueueJobs();
-            });
+            $queue = $this->app['queue'];
+            if ($queue instanceof Queue) {
+                return;
+            }
+            $this->app['queue']->fireQueueJobs();
         });
     }
 
@@ -47,9 +48,35 @@ class DelayedQueueServiceProvider extends ServiceProvider
      */
     public function registerConnectors($manager)
     {
-        foreach (['Database', 'Redis', 'Beanstalkd', 'Sqs'] as $connector) {
+        foreach (['Null', 'Sync', 'Database', 'Beanstalkd', 'Redis', 'Sqs'] as $connector) {
             $this->{"register{$connector}Connector"}($manager);
         }
+    }
+
+    /**
+     * Register the Null queue connector.
+     *
+     * @param  \Illuminate\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerNullConnector($manager)
+    {
+        $manager->addConnector('null', function () {
+            return new NullConnector();
+        });
+    }
+
+    /**
+     * Register the Sync queue connector.
+     *
+     * @param  \Illuminate\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerSyncConnector($manager)
+    {
+        $manager->addConnector('sync', function () {
+            return new SyncConnector();
+        });
     }
 
     /**

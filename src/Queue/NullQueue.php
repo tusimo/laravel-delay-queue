@@ -2,7 +2,7 @@
 
 namespace Tusimo\DelayedQueue\Queue;
 
-class SyncQueue extends \Illuminate\Queue\SyncQueue
+class NullQueue extends \Illuminate\Queue\NullQueue
 {
     use DelayedQueueHelper;
 }
