@@ -1,0 +1,35 @@
+{
+  "name": "tusimo/laravel-delay-queue",
+  "type": "library",
+  "description": "trigger for later fire redis queue job when app shutdown",
+  "keywords": ["queue", "later job", "redis"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "tusimo",
+      "email": "ucc862@gmail.com"
+    }
+  ],
+  "require": {
+    "illuminate/support": "^5.4.*",
+    "illuminate/queue": "^5.4.*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~5.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tusimo\\DelayedQueue\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tusimo\\DelayedQueue\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "preferred-install": "dist"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
