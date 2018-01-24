@@ -25,7 +25,7 @@ return [
 ];
 ```
 
-3. 修改config/queue.php.增加delay参数为true即可
+3. 修改config/queue.php.增加delay参数为true即可,其他connection也可使用delay
 ```php
 'redis' => [
             'driver'      => 'redis',
