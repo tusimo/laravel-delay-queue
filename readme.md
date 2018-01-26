@@ -44,7 +44,14 @@ return [
 ```php
 public function report(Exception $exception)
     {
-        app('queue')->flushQueueJobs();
+        //清空已经保存的队列任务
+        DelayQueueContainer::flushQueueJobs();
+        
+        //获取已保存的队列任务
+        DelayQueueContainer::getQueueJobs();
+        
+        //立即将已保存的队列任务放入队列后台
+        DelayQueueContainer::fireQueueJobs()
         
         if ($this->shouldntReport($exception)) {
             return;
