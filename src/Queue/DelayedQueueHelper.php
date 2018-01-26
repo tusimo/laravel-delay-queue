@@ -2,11 +2,13 @@
 
 namespace Tusimo\DelayedQueue\Queue;
 
+use Tusimo\DelayedQueue\DelayQueueContainer;
+
 trait DelayedQueueHelper
 {
-    protected $delay = false;
+    protected $queue;
 
-    protected $queueJobs = [];
+    protected $delay = false;
 
     public function setDelay($delay = false)
     {
@@ -20,27 +22,6 @@ trait DelayedQueueHelper
 
     protected function addQueueJobs($function, $args)
     {
-        if (isset($this->queueJobs[$function])) {
-            array_push($this->queueJobs[$function], $args);
-        } else {
-            $this->queueJobs[$function][] = $args;
-        }
-    }
-
-    public function fireQueueJobs()
-    {
-        if ($this->queueJobs) {
-            foreach ($this->queueJobs as $function => $jobs) {
-                foreach ($jobs as $job) {
-                    parent::$function(...$job);
-                }
-            }
-        }
-        $this->flushQueueJobs();
-    }
-
-    public function flushQueueJobs()
-    {
-        $this->queueJobs = [];
+        DelayQueueContainer::addQueueJobs($this, $function, $args);
     }
 }

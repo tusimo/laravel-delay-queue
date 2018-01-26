@@ -2,15 +2,16 @@
 
 namespace Tusimo\DelayedQueue\Provider;
 
+use Illuminate\Queue\Connectors\BeanstalkdConnector;
+use Illuminate\Queue\Connectors\DatabaseConnector;
+use Illuminate\Queue\Connectors\NullConnector;
+use Illuminate\Queue\Connectors\RedisConnector;
+use Illuminate\Queue\Connectors\SqsConnector;
+use Illuminate\Queue\Connectors\SyncConnector;
 use Illuminate\Support\Facades\Queue;
-use Psy\Exception\FatalErrorException;
-use Tusimo\DelayedQueue\Connectors\BeanstalkdConnector;
-use Tusimo\DelayedQueue\Connectors\DatabaseConnector;
-use Tusimo\DelayedQueue\Connectors\NullConnector;
-use Tusimo\DelayedQueue\Connectors\RedisConnector;
-use Tusimo\DelayedQueue\Connectors\SqsConnector;
 use Illuminate\Support\ServiceProvider;
-use Tusimo\DelayedQueue\Connectors\SyncConnector;
+use Tusimo\DelayedQueue\Connectors\DelayConnector;
+use Tusimo\DelayedQueue\DelayQueueContainer;
 
 class DelayedQueueServiceProvider extends ServiceProvider
 {
@@ -21,7 +22,8 @@ class DelayedQueueServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->registerConnectors(app('queue'));
+        $this->registerConnectors($this->app['queue']);
+        $this->registerConnection();
     }
 
     /**
@@ -32,11 +34,19 @@ class DelayedQueueServiceProvider extends ServiceProvider
     public function boot()
     {
         register_shutdown_function(function () {
-            $queue = $this->app['queue'];
-            if ($queue instanceof Queue) {
-                return;
-            }
-            $this->app['queue']->fireQueueJobs();
+            DelayQueueContainer::fireQueueJobs();
+        });
+    }
+
+    /**
+     * Register the default queue connection binding.
+     *
+     * @return void
+     */
+    protected function registerConnection()
+    {
+        $this->app->singleton('queue.connection', function ($app) {
+            return $app['queue']->connection();
         });
     }
 
@@ -62,7 +72,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerNullConnector($manager)
     {
         $manager->addConnector('null', function () {
-            return new NullConnector();
+            return new DelayConnector(new NullConnector());
         });
     }
 
@@ -75,7 +85,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerSyncConnector($manager)
     {
         $manager->addConnector('sync', function () {
-            return new SyncConnector();
+            return new DelayConnector(new SyncConnector());
         });
     }
 
@@ -88,7 +98,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerDatabaseConnector($manager)
     {
         $manager->addConnector('database', function () {
-            return new DatabaseConnector($this->app['db']);
+            return new DelayConnector(new DatabaseConnector($this->app['db']));
         });
     }
 
@@ -101,7 +111,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerRedisConnector($manager)
     {
         $manager->addConnector('redis', function () {
-            return new RedisConnector($this->app['redis']);
+            return new DelayConnector(new RedisConnector($this->app['redis']));
         });
     }
 
@@ -114,7 +124,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerBeanstalkdConnector($manager)
     {
         $manager->addConnector('beanstalkd', function () {
-            return new BeanstalkdConnector;
+            return new DelayConnector(new BeanstalkdConnector);
         });
     }
 
@@ -127,7 +137,7 @@ class DelayedQueueServiceProvider extends ServiceProvider
     protected function registerSqsConnector($manager)
     {
         $manager->addConnector('sqs', function () {
-            return new SqsConnector;
+            return new DelayConnector(new SqsConnector);
         });
     }
 }
