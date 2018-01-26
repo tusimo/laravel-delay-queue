@@ -8,12 +8,11 @@ use Illuminate\Queue\Connectors\NullConnector;
 use Illuminate\Queue\Connectors\RedisConnector;
 use Illuminate\Queue\Connectors\SqsConnector;
 use Illuminate\Queue\Connectors\SyncConnector;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Queue\QueueServiceProvider;
 use Tusimo\DelayedQueue\Connectors\DelayConnector;
 use Tusimo\DelayedQueue\DelayQueueContainer;
 
-class DelayedQueueServiceProvider extends ServiceProvider
+class DelayedQueueServiceProvider extends QueueServiceProvider
 {
     /**
      * Register bindings in the container.
@@ -23,7 +22,6 @@ class DelayedQueueServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerConnectors($this->app['queue']);
-        $this->registerConnection();
     }
 
     /**
@@ -36,31 +34,6 @@ class DelayedQueueServiceProvider extends ServiceProvider
         register_shutdown_function(function () {
             DelayQueueContainer::fireQueueJobs();
         });
-    }
-
-    /**
-     * Register the default queue connection binding.
-     *
-     * @return void
-     */
-    protected function registerConnection()
-    {
-        $this->app->singleton('queue.connection', function ($app) {
-            return $app['queue']->connection();
-        });
-    }
-
-    /**
-     * Register the connectors on the queue manager.
-     *
-     * @param  \Illuminate\Queue\QueueManager  $manager
-     * @return void
-     */
-    public function registerConnectors($manager)
-    {
-        foreach (['Null', 'Sync', 'Database', 'Beanstalkd', 'Redis', 'Sqs'] as $connector) {
-            $this->{"register{$connector}Connector"}($manager);
-        }
     }
 
     /**

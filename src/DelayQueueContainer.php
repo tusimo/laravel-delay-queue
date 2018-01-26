@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: tusimo
- * Date: 1/26/18
- * Time: 10:40 AM
- */
 
 namespace Tusimo\DelayedQueue;
 

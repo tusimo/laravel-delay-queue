@@ -5,10 +5,13 @@ namespace Tusimo\DelayedQueue\Queue;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue;
+use Tusimo\DelayedQueue\DelayQueueContainer;
 
 class DelayQueue extends Queue implements QueueContract
 {
-    use DelayedQueueHelper;
+    protected $queue;
+
+    protected $delay = false;
 
     public function __construct(QueueContract $queue, $delay = false)
     {
@@ -143,7 +146,12 @@ class DelayQueue extends Queue implements QueueContract
      */
     public function bulk($jobs, $data = '', $queue = null)
     {
-        return $this->queue->bulk($jobs, $data, $queue);
+        if ($this->getDelay()) {
+            $this->addQueueJobs('bulk', func_get_args());
+            return 0;
+        } else {
+            return $this->queue->bulk($jobs, $data, $queue);
+        }
     }
 
     public function __call($name, $arguments)
@@ -171,5 +179,20 @@ class DelayQueue extends Queue implements QueueContract
     {
         $this->container = $container;
         $this->queue->setContainer($container);
+    }
+
+    public function setDelay($delay = false)
+    {
+        $this->delay = $delay;
+    }
+
+    public function getDelay()
+    {
+        return $this->delay;
+    }
+
+    protected function addQueueJobs($function, $args)
+    {
+        DelayQueueContainer::addQueueJobs($this, $function, $args);
     }
 }
