@@ -31,7 +31,12 @@ class DelayedQueueServiceProvider extends QueueServiceProvider
      */
     public function boot()
     {
+        //register for not cli mode
         register_shutdown_function(function () {
+            DelayQueueContainer::fireQueueJobs();
+        });
+        //register for cli mode
+        $this->app['queue']->after(function () {
             DelayQueueContainer::fireQueueJobs();
         });
     }
