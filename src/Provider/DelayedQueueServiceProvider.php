@@ -39,6 +39,14 @@ class DelayedQueueServiceProvider extends QueueServiceProvider
         $this->app['queue']->after(function () {
             DelayQueueContainer::fireQueueJobs();
         });
+        //register for cli exception happened to remove fired jobs
+        $this->app['queue']->exceptionOccurred(function () {
+            DelayQueueContainer::flushQueueJobs();
+        });
+        //register for cli queue fail to remove fired jobs
+        $this->app['queue']->failing(function () {
+            DelayQueueContainer::flushQueueJobs();
+        });
     }
 
     /**
