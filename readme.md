@@ -59,3 +59,6 @@ public function report(Exception $exception)
         app(ErrorReporter::class)->report($exception);
     }
 ```
+## 注意
+默认CLI模式会在错误产生的时候自动删除已经发出的job保证只有在运行成功后才会触发job到队列。非CLI模式没有处理，需要自己在类似删除report函数里清空。
+如果在错误发生时，也需要某个job进入队列执行，请手动在代码里运行 ```php DelayQueueContainer::fireQueueJobs();```,此时会立即将已保存的job发送到队里。
