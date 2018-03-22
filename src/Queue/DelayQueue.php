@@ -170,6 +170,29 @@ class DelayQueue extends Queue implements QueueContract
     }
 
     /**
+     * Get the connection name for the queue.
+     *
+     * @return string
+     */
+    public function getConnectionName()
+    {
+        return $this->queue->getConnectionName();
+    }
+
+    /**
+     * Set the connection name for the queue.
+     *
+     * @param  string  $name
+     * @return $this
+     */
+    public function setConnectionName($name)
+    {
+        $this->connectionName = $name;
+        $this->queue->setConnectionName($name);
+        return $this;
+    }
+
+    /**
      * Set the IoC container instance.
      *
      * @param  \Illuminate\Container\Container  $container
